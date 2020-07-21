@@ -170,6 +170,9 @@ eq2 ~\rightarrow eq1  - 2 \times eq2: & & &  y & - &11 z & =& -9 \\
 eq3~ \rightarrow ~ eq1 + 2 \times eq3: & & &  7y &- &5z& = & 9 
 \end{align}
 
+In this case the 2 coefficient for x in the first row is the *pivot*, and we are using 
+this pivot value to convert the other two x coefficients in the rows below to zeros.
+
 \textbf{Gaussian elimination -- step 2} remove the unknown $y$ from the last equation:
 
 \begin{align}
@@ -178,13 +181,16 @@ eq2: & ~~~ y - 11 z & = -9 \\
 eq3 ~ \rightarrow ~ 7 \times eq2 - eq3: & ~~~ -72  z = -72 
 \end{align}
 
+Now the pivot is the 1 coefficient for $y$ in eq2.
+
 \begin{align}
 eq1: & 2x + y - z & =  3 \\
 eq2: & ~~~ y - 11 z & = -9 \\
 eq3:  &  ~~~ -72  z & = -72 
 \end{align} 
 
-This system is said to be {\bf upper triangular}.
+This system is said to be *upper triangular*. It is also known as *row echelon$ form, 
+and the leading coefficients ([2, 1, -72] in this case) are known as the *pivots*.
 
 \textbf{Gaussian elimination -- step 3} We can now use back substitution to obtain $x,y,z$.  In this case 
 
@@ -192,7 +198,7 @@ $$ z = 1,$$
 $$ eq2: ~~ y - 11 = -9 ~~ \implies ~~ y = 2,$$
 $$ eq1: ~~ 2x +2 -1 = 3 , ~~ \implies ~~ x = 1.$$ 
 
-### Another rule for Gaussian elimination
+### Pivoting
 
 Consider the following system 
 
@@ -210,7 +216,13 @@ eq2:& & & & &  3z &   = & b' \\
 eq3: & & & 2y &  + & 4z &  = & c' 
 \end{align}
 
-This can easily be switched into upper triangular form by switching rows two and three.
+The problem here is that we have zero for the pivot in eq2. This can easily be switched 
+into upper triangular form by switching rows two and three.
+
+**Partial pivoting**: In general, we should be worried about both zero and very small 
+pivot values, as in the latter case they will lead to division by a small value, which 
+can cause large roundoff errors. So common practice is to select a row/pivot value such 
+that the pivot value is as large as possible 
 
 ### Singular matrices in Gaussian Elimination
 
@@ -234,11 +246,42 @@ singular and has no inverse
 
 1. Operate on LHS and RHS (or RHSs) at the same time
 2. Replace row with a sum/combination of rows
+3. Work on one column at a time, choosing a pivot (leading non-zero entry in a chosen 
+   row), and eliminating all other non-zero values below that
 3. Switch rows to avoid zeros on the diagonal (*pivoting*)
-4. If (3) does not work, zeros on the diagonal (*pivots*) indicate a singular matrix 
+4. If (3) does not work, zeros on the diagonal (*pivots*) indicate a singular matrix
 
 **Computational cost**: If the number of equations $n$ is large, then a number of 
 operations for gaussian elimination is $\mathcal{O}(n^3)$.
+
+### Pseudocode
+
+[Wikipedia](https://en.wikipedia.org/wiki/Gaussian_elimination#Pseudocode) has a 
+pseudocode implementation of the gaussian elimination algorithm which is helpful to 
+understand how it works:
+
+    h := 1 /* Initialization of the pivot row */
+    k := 1 /* Initialization of the pivot column */
+
+    while h ≤ m and k ≤ n
+        /* Find the k-th pivot: */
+        i_max := argmax (i = h ... m, abs(A[i, k]))
+        if A[i_max, k] = 0
+            /* No pivot in this column, pass to next column */
+            k := k+1
+        else
+             swap rows(h, i_max)
+             /* Do for all rows below pivot: */
+             for i = h + 1 ... m:
+                    f := A[i, k] / A[h, k]
+                    /* Fill with zeros the lower part of pivot column: */
+                    A[i, k] := 0
+                    /* Do for all remaining elements in current row: */
+                    for j = k + 1 ... n:
+                         A[i, j] := A[i, j] - A[h, j] * f
+             /* Increase pivot row and column */
+             h := h + 1
+             k := k + 1
 
 ## Problems
 
@@ -247,6 +290,36 @@ operations for gaussian elimination is $\mathcal{O}(n^3)$.
    = b$. If you wish you can assume that the matrix has an inverse. Try it out on a few 
    test matrices and check your answer using 
    [`scipy.linalg.solve`](https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.linalg.solve.html).
+
+## Condition Number
+
+Gaussian Elimination might still fail if $A$ is close to being singular, if a slight 
+change to its values causes it to be singular. In this case simple round-off error in 
+the floating point calculations can lead to zeros in the pivot positions. 
+
+Even if the pivot value is not exactly zero, a pivot value close to zero can lead to 
+large differences in the final result. In this case the matrix would be *nearly 
+singular*, or *ill-conditioned*. Most linear algebra packages will include a method of 
+calculating the *condition number* of a matrix, which evaluates how sensitive the 
+solution is to the input values of the matrix or rhs vector. An identity matrix has a 
+condition number of 1, while an exactly singular matrix has a condition number of 
+infinity.
+
+## Problems
+
+Suppose an experiment leads to the following system of equations:
+4.5 x1 + 3.1x2 =   19.249
+   1.6x1 + 1.1x2 = 6.843
+
+  1. Solve system (3), and then solve system (4), below, in which the data on the right 
+     have been rounded to two decimal places. In each case, find the exact solution. 
+     4:5x1 + 3:1x2 = 19:25  
+     1.6x1 + 1:1x2 = 6:84
+  2. The entries in (4) differ from those in (3) by less than .05%. Find the percentage 
+     error when using the solution of (4) as an approximation for the solution of 
+     (3).
+  3.Use `numpy.linalg.cond` to produce the condition number of the coefficient matrix in 
+  (3).
 
 ## Textbooks
 
