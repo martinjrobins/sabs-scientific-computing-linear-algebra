@@ -5,8 +5,8 @@ exercises: 0
 questions:
 - "How can matrix decompositions help with repeated solutions?"
 - "What is the LU decomposition?"
-- "What is the QR decomposition?"
 - "What is the Cholesky decomposition?"
+- "What is the QR decomposition?"
 
 objectives:
 - "Explain the main useful matrix decompositions"
@@ -106,10 +106,10 @@ required to solve the original equation $A x = b$.
 
 A relativly simple LU algorithm can be described if we assume that no pivoting is 
 required during a gaussian elimination. In this case, the gaussian elimination process 
-is mearly a sequence of $p$ linear operations $E_1, E_2, ..., E_p$, with each operation 
-$E_i$ being a row replacement that adds a multiple of one row to another below it (i.e. 
-$E_i$ is lower triangular). The final matrix after applying the sequence of row 
-reductions is $U$ in row echelon form, that is:
+is a sequence of $p$ linear operations $E_1, E_2, ..., E_p$, with each operation $E_i$ 
+being a row replacement that adds a multiple of one row to another below it (i.e. $E_i$ 
+is lower triangular). The final matrix after applying the sequence of row reductions is 
+$U$ in row echelon form, that is:
 
 $$
 E_p \cdots E_2 E_1 A = U
@@ -135,10 +135,10 @@ $$
 $$
 
 
-This implies how we can build up the matrix $L$, we simply choose values for $L$ such 
-that the series of row operations $E_1, E_2, ..., E_p$ convert the matrix $L$ to the 
-identity matrix. Since each $E_i$ is lower triangular, we know that both $(E_p \cdots 
-E_2 E_1)$ and $(E_p \cdots E_2 E_1)^{-1}$ are also lower triangular.
+This implies how we can build up the matrix $L$. We choose values for $L$ such that the 
+series of row operations $E_1, E_2, ..., E_p$ convert the matrix $L$ to the identity 
+matrix. Since each $E_i$ is lower triangular, we know that both $(E_p \cdots E_2 E_1)$ 
+and $(E_p \cdots E_2 E_1)^{-1}$ are also lower triangular.
 
 For example, consider the following matrix
 
@@ -179,7 +179,9 @@ For the next column we do the same, using the new pivot value $A_{2,2} = 2$ in r
 reduce $A_{3,2}$ and $A_{4,2}$ to zero, and then dividing the column vector under the 
 pivot $(-6, 0)^T$ by the pivot value 2 to obtain the next column of $L$.
 
-Repeating this process for all the columns in $A$, we obtain the final factorisation
+Repeating this process for all the columns in $A$, we obtain the final factorisation. 
+You can verify for yourself that repeating the same row operations we did to form $U$ to 
+the matrix $L$ reduces it to the identity matrix.
 
 $$
 L = left(\begin{matrix}
@@ -199,5 +201,58 @@ U = left(\begin{matrix}
 \end{matrix}\right)
 $$
 
+## Pivoting
+
+Of course, for any practial LU factorisation we need to consider pivoting. Any matrix 
+$A$ can be factorised into $PLU$, where $P$ is a permutation matrix, and $L$ and $U$ are 
+defined as before. During the gaussian elimination steps we store an array of row 
+indices $p_i$ indicating that row $i$ is interchanged with row $p_i$, and the resultant 
+array of $p_i$ can be used to build the permutation matrix $P$ (It would be wasteful to 
+store the entire martix $P$ so the array $p_i$ is stored instead). 
+
+Thus, the LU algorithm proceeds as follows:
+
+1. Begin with the left-most column $i=0$, find an appropriate pivot (e.g. maximum entry 
+   in the colum) and designate this row as the pivot row. Interchange this row with row 
+   $i$, and store the pivot row index as $p_i$. Use row replacements to create zeros 
+   below the pivot. Create the corresponding column for $L$ by dividing by the pivot 
+   value.
+2. Continue along to the next column $i$, again choosing a pivot row $p_i$, 
+   interchanging it with row $i$ and creating zeros below the pivot, creating the new 
+   column in $L$, and making sure to record which pivot row has been chosen for each 
+   column. Repeat this step for all the columns of the matrix.
+3. Once the last column has been done, $U$ should be in row echlon form and $L$ should 
+   be a unit lower triangular matrix. The array $p_i$ implicitly defines the permutation 
+   matrix $P$
+
+In practice, most library implementation store $L$ and $U$ in the same matrix since they 
+are lower and upper triangular respectivly.
+
+## Problems
+
+1. Take your gaussian elimination code that you wrote in the previous lesson and use it 
+   to write an LU decomposition function that takes in a martix $A$, and returns $L$, 
+   $U$ and the array $p_i$. You can check your answer using 
+   [`scipy.linalg.lu_factor`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lu_factor.html).
+
+
+## QR decomposition
+
+explain
+
+### Gram-Schmidt Process
+
+### Householder reflections
+
+### Givens Rotations
+
+## Cholesky decomposition
+
+explain
+
+## Problems
+
+Use scipy to solve problems using LU (solve Ax = b using lu), Cholesky (Generating a 
+sampled Gaussian field), + QR decomp (least squares problem)
 
 
